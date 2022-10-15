@@ -1,4 +1,4 @@
-# obsidian-track-weekly-report
+# obsidian-time-tracking-reports
 
 Dataview script used to aggregate time tracking entries into a table showing weekly entries grouped by date and monthly entries grouped by week number.
 
