@@ -4,4 +4,5 @@ Dataview script used to aggregate time tracking entries into a table showing wee
 
 ## Example
 
-![image](https://user-images.githubusercontent.com/6796142/195979094-cbe29a61-0dcb-40b4-a3cb-bf65c89ffea9.png)
+![image](https://user-images.githubusercontent.com/6796142/195982883-9fcd71dc-ac61-4b1d-bc80-4ce7568920e7.png)
+
