@@ -1,6 +1,8 @@
 # obsidian-track-weekly-report
 
-Dataview script used to aggregate time tracking entries into a table showing weekly entries summed by each date.
+Dataview script used to aggregate time tracking entries into a table showing weekly entries grouped by date and monthly entries grouped by week number.
+
+Simply paste `reports.md` into any Obsidian note and make sure [Dataview](https://blacksmithgu.github.io/obsidian-dataview/) is installed. 
 
 | Example |
 | - |
