@@ -62,7 +62,8 @@ const days = Object.entries(entries.reduce(
 ))
 
 function formatDate (d) {
-	return moment(d).format("dddd, MMMM Do YYYY");
+	const str = moment(d).format("dddd, LL")
+	return str[0].toUpperCase() + str.substring(1)
 }
 
 function formatDuration (d) {
