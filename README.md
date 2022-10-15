@@ -2,7 +2,7 @@
 
 Dataview script used to aggregate time tracking entries into a table showing weekly entries grouped by date and monthly entries grouped by week number.
 
-Simply paste `reports.md` into any Obsidian note and make sure [Dataview](https://blacksmithgu.github.io/obsidian-dataview/) is installed. 
+Simply paste the contents of [reports.md](./reports.md) into any Obsidian note and make sure [Dataview](https://blacksmithgu.github.io/obsidian-dataview/) is installed. 
 
 | Example |
 | - |
