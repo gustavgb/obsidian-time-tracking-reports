@@ -1,55 +1,65 @@
 ```dataviewjs
-dv.header(1, "Weekly tracking")
+const locale = 'da'
+dv.header(1, "Weekly overview")
 
-moment.locale('da')
+const items = dv.pages('#worklog').file.lists
+	.map(item => item.text)
+	.sort()
+	.array()
 
-const items = dv.current().file.lists
-.where(item => item.tags.contains("#track"))
-.map(item => item.text)
-.sort()
-.array()
-.map(item => item.replace('#track', '').trim())
+const sow = moment().locale(locale).startOf('week')
+const som = moment().locale(locale).startOf('month')
+const durationReg = /(\d{1,2}:\d{2})\s*(-*)\s*(\d{1,2}:\d{2})*/
 
-const sow = moment().startOf('week')
-const som = moment().startOf('month')
+function parseDuration (str) {
+	const match = str.match(durationReg)
+	if (!match) {
+		return moment.duration(0)
+	}
+
+	const start = match[1]
+	const dilimeter = match[2]
+	const end = match[3]
+	
+	if (start && end) {
+		if (start > end) {
+			dv.paragraph('Invalid duration (start must be earlier than end): ' + str)
+			return moment.duration(0)
+		}
+
+		return moment.duration(end).subtract(moment.duration(start))
+	} else if (start && !dilimeter) {
+		return moment.duration(start)
+	}
+
+	return moment.duration(0)
+}
+
+function formatDate (d) {
+	const str = moment(d).format("dddd, LL")
+	return str[0].toUpperCase() + str.substring(1)
+}
+
+function formatDuration (d) {
+	const duration = d.as('hours')
+	const hours = Math.floor(duration)
+	const minutes = Math.round((duration - hours) * 60)
+
+	const hoursFormatted = hours ? `${hours} hour${hours > 1 ? 's' : ''}` : ''
+	const minutesFormatted = minutes ? `${minutes} minute${minutes > 1 ? 's' : ''}` : ''
+	return [hoursFormatted, minutesFormatted].join(' ')
+}
 
 const entries = items.map(item => {
-	const durationStr = item.split(':')[1].trim()
-	const date = item.split(':')[0].trim()
-	const durationParams = durationStr.split(' ')
-
-	if (durationParams.length % 2 !== 0) {
-		dv.paragraph('Invalid duration (missing space between value and unit): ' + item)
-		return {
-			date,
-			duration: moment.duration(0)
-		}
-	}
-
-	const durations = []
-	for (let i = 0; i < durationParams.length; i += 2) {
-		const durationVal = parseFloat(durationParams[i].trim())
-		const durationUnit = durationParams[i + 1].toLowerCase().trim()
-		const duration = moment.duration(durationVal, durationUnit)
-		if (!duration.isValid()) {
-			dv.paragraph('Invalid duration: ' + durationVal + ' ' + durationUnit)
-		} else {
-			durations.push(duration)
-		}
-	}
-
-	const totalDuration = durations.reduce(
-		(acc, duration) => acc.add(duration),
-		moment.duration(0)
-	)
+	const parts = item.split(':')
+	const date = parts[0].trim()
+	const durationStr = parts.slice(1).join(':').trim()
 
 	return {
 		date,
-		duration: totalDuration
+		duration: parseDuration(durationStr)
 	}
 })
-
-//.filter(item => moment(item.date).isAfter(sow))
 
 const days = Object.entries(entries.reduce(
 	(acc, item) => {
@@ -61,21 +71,13 @@ const days = Object.entries(entries.reduce(
 	{}
 ))
 
-function formatDate (d) {
-	const str = moment(d).format("dddd, LL")
-	return str[0].toUpperCase() + str.substring(1)
-}
-
-function formatDuration (d) {
-	return Math.round(d.as('hours') * 100) / 100 + ' hours'
-}
-
-const weekRows = days.filter(item => moment(item[0]).isAfter(sow)).map(day =>[formatDate(day[0]), formatDuration(day[1])]).reverse()
+const weekDays = days.filter(item => moment(item[0]).isSameOrAfter(sow))
+const weekRows = weekDays.map(day =>[formatDate(day[0]), formatDuration(day[1])]).reverse()
 
 weekRows.push(
 	[
 	'**Total**',
-	formatDuration(days.reduce((acc, day) => acc.add(day[1]), moment.duration(0)))
+	`**${formatDuration(weekDays.reduce((acc, day) => acc.add(day[1]), moment.duration(0)))}**`
 	]
 )
 
@@ -83,13 +85,17 @@ dv.table(["Date", "Duration"], weekRows)
 
 dv.header(1, 'Monthly overview')
 
-const weeks = Object.entries(days.filter(item => moment(item.date).isAfter(som)).reduce((acc, day) => {
-	const weekNumber = moment(day[0]).week()
+const weeks = Object.entries(days.filter(item => moment(item.date).isSameOrAfter(som)).reduce((acc, day) => {
+	const weekNumber = moment(day[0]).locale(locale).week()
 	const lastDuration = acc[weekNumber] || moment.duration(0)
 	return Object.assign(acc, { [weekNumber]: lastDuration.add(day[1]) })
 }, {}))
 
 const monthRows = weeks.map(week => [`Week ${week[0]}`, formatDuration(week[1])]).reverse()
+monthRows.push([
+	'**Total**',
+	`**${formatDuration(weeks.reduce((acc, week) => acc.add(week[1]), moment.duration(0)))}**`
+])
 
 dv.table(["Week", "Duration"], monthRows)
 ```
